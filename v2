@@ -1,0 +1,127 @@
+##Incidence and prevelence of NHL by region 
+#library call
+library("dplyr")
+# importing the dataset and attaching it to an object `` 
+
+IHME.GBD_2016_DATA.f7a7ea30.1 <- read.csv("~/Desktop/IHME-GBD_2016_DATA-f7a7ea30-1.csv")
+
+gbd <-IHME.GBD_2016_DATA.f7a7ea30.1
+
+#Dataset overview 
+head(gbd)
+dim(gbd)
+summary(gbd)
+as_tibble(gbd)
+colnames(gbd)
+
+## Change from scientific notation 
+options(scipen = 999)
+
+#data managment Incidence + prev per area 
+Inc_prev_west<- filter(gbd,location=="Western Europe", measure =="Incidence", metric =="Rate", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+Inc_prev_est<- filter(gbd,location=="Eastern Europe", measure =="Incidence", metric =="Rate", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+Inc_prev_cent<- filter(gbd,location=="Central Europe", measure =="Incidence", metric =="Rate", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+dim(Inc_prev_cent)
+#Cleaning names 
+inc_west <- Inc_prev_west %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                             "Chronic lymphoid leukemia" = "CLL" ))
+inc_est <- Inc_prev_est %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                        "Chronic lymphoid leukemia" = "CLL" ))
+
+inc_cent <- Inc_prev_cent %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                        "Chronic lymphoid leukemia" = "CLL"))``
+
+
+## Creating plots for each country 
+
+library(ggplot2)
+inc_west_plot <- ggplot(data=inc_west, aes(x=year, y=val, group=cause)) +
+  scale_y_continuous(breaks = seq(0,16),limits =c(0,16))+
+  geom_errorbar(aes(ymin=lower, ymax=upper), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(title="Incidence in Western Europe",x="Year", y = "Rate per 100,000")+
+  theme(legend.position="none", legend.title=element_blank())
+
+inc_est_plot <- ggplot(data=inc_est, aes(x=year, y=val, group=cause)) +
+  scale_y_continuous(breaks = seq(0,16),limits =c(0,16))+
+  geom_errorbar(aes(ymin=lower, ymax=upper), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(title="Incidence In Eastern Europe",x="Year", y = "Rate per 100,000")+
+  theme(legend.position="none")
+
+
+inc_cent_plot <- ggplot(data=inc_cent, aes(x=year, y=val, group=cause)) +
+  scale_y_continuous(breaks = seq(0,16),limits =c(0,16))+
+  geom_errorbar(aes(ymin=lower, ymax=upper), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(color = "Disease")+
+  labs(title="Incidence in Central Europe",x="Year", y = "Rate per 100,000")+
+  theme(legend.position="bottom")
+
+
+##Combining 
+install.packages("gridExtra")
+library(gridExtra)
+plot_group1 <- grid.arrange(inc_west_plot, inc_est_plot, inc_cent_plot)
+
+
+## Graphoing for prev 
+
+#data managment Incidence + prev per area 
+prev_west<- filter(gbd,location=="Western Europe", measure =="Prevalence", metric =="Percent", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+prev_est<- filter(gbd,location=="Eastern Europe", measure =="Prevalence", metric =="Percent", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+prev_cent<- filter(gbd,location=="Central Europe", measure =="Prevalence", metric =="Percent", sex=="Both",cause!="Chronic myeloid leukemia") %>% arrange(year)
+
+
+#Cleaning names
+
+
+prev_west_c <- prev_west %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                        "Chronic lymphoid leukemia" = "CLL" ))
+prev_est_c <- prev_est %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                        "Chronic lymphoid leukemia" = "CLL" ))
+
+prev_cent_c <- prev_cent %>%
+  mutate(cause = recode(cause, "Non-Hodgkin lymphoma" = "NHL",
+                        "Chronic lymphoid leukemia" = "CLL"))
+
+
+## Creating plots for each country 
+
+library(ggplot2)
+prev_west_plot <- ggplot(data=prev_west_c, aes(x=year, y=val*10000, group=cause)) +
+  geom_errorbar(aes(ymin=lower*10000, ymax=upper*10000), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(title="Prevalence in Western Europe",x="Year", y = "% Prevalence per 10,000")+
+  theme(legend.position="none", legend.title=element_blank())
+
+prev_est_plot <- ggplot(data=prev_est_c, aes(x=year, y=val*10000, group=cause)) +
+  geom_errorbar(aes(ymin=lower*10000, ymax=upper*10000), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(title="Prevalence In Eastern Europe",x="Year", y = "% Prevalence per 10,000")+
+  theme(legend.position="none")
+
+
+prev_cent_plot <- ggplot(data=prev_cent_c, aes(x=year, y=val*10000, group=cause)) +
+  geom_errorbar(aes(ymin=lower*10000, ymax=upper*10000), width=.1) +
+  geom_line(aes(color=cause))+
+  geom_point(aes(color=cause)) +
+  labs(color = "Disease")+
+  labs(title="Prevalence in Central Europe",x="Year", y = "% Prevalence per 10,000")+
+  theme(legend.position="bottom")
+
+
+##Combining 
+library(gridExtra)
+plot_group2 <- grid.arrange(prev_west_plot, prev_est_plot, prev_cent_plot)
+
